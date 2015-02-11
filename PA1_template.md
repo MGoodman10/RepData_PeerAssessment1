@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"  
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Data
@@ -30,7 +25,8 @@ The first step is to load the data.  This script assumes the code has been
 unziped into a repro_p_1 directory under the working directory. After loading
 the file, the Date field is converted from Factor to Date type.  
 
-```{r}
+
+```r
 readfile <- paste(getwd(),"/repro_p_1", "/", "activity.csv", sep="")
 activity.df <- read.csv(readfile, header=TRUE)
 activity.df$date <- as.Date(activity.df$date, format = "%Y-%m-%d")
@@ -43,7 +39,8 @@ plotting the results.  It also includes calculating the mean and median
 values for the daily totals.  Since steps are measured in whole steps, 
 the mean value is rounded to the nearest whole number.  
 
-```{r}
+
+```r
 library(ggplot2)
 options(scipen = 1, digits = 2)
 steps.day <- aggregate(x=list(steps=activity.df$steps),
@@ -52,14 +49,18 @@ steps.day <- aggregate(x=list(steps=activity.df$steps),
 
 qplot(steps.day$steps, binwidth=1000, xlab="total steps per day", 
       ylab="count of days")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
+```r
 steps.mean <- mean(steps.day$steps, na.rm=TRUE)
 steps.mean <- round(steps.mean, digits = 0)
 steps.median <- median(steps.day$steps, na.rm=TRUE)
 ```
 
-* The **mean** number of steps per day is `r steps.mean` (rounded to whole steps)  
-* The **median** number of steps per day is `r steps.median`
+* The **mean** number of steps per day is 10766 (rounded to whole steps)  
+* The **median** number of steps per day is 10765
 
 ## What is the average daily activity pattern?
 Addressing this question requires summing each 5 minute interval across all
@@ -67,7 +68,8 @@ days and plotting the results.  Also, the interval that has the highest
 average number of steps and the number of steps for that interval is
 identified.  
 
-```{r}
+
+```r
 steps.interval <- aggregate(x=list(mean.steps=activity.df$steps),
                       by=list(interval=activity.df$interval),
                       FUN=mean, na.rm=TRUE)
@@ -76,24 +78,29 @@ ggplot(data=steps.interval, aes(x=interval, y=mean.steps)) +
         geom_line() +
         xlab("5-minute interval") +
         ylab("average number of steps taken")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
 max.interval <- steps.interval[which.max(steps.interval$mean.steps),]
 max.interval$mean.steps <- round(max.interval$mean.steps, digits = 0)
 ```
 
 The interval with the maximum average number of steps is
-**`r max.interval$interval`** with and average of 
-**`r max.interval$mean.steps`** steps.
+**835** with and average of 
+**206** steps.
 
 ## Imputing missing values
 There are a number of intervals where the number of steps is missing.  The
 number of impacted records needs to be counted and then the missing values need to be addressed.  
   
-```{r}
+
+```r
 na.steps <- sum(is.na(activity.df$steps))
 ```
   
-There are **`r na.steps`** intervals with missing values.  
+There are **2304** intervals with missing values.  
   
 This analysis addresses missing values by replacing them with the mean number
 of steps for that interval.  This is done by:  
@@ -104,7 +111,8 @@ of steps for that interval.  This is done by:
   
 Once the data is imputed, the results are plotted and mean and median values calculated.  
 
-```{r}
+
+```r
 options(scipen = 1, digits = 2)
 impute.df <- merge(activity.df, steps.interval, by = "interval", sort = FALSE)
 impute.df <- impute.df[with(impute.df, order(date, interval)), ]
@@ -117,14 +125,18 @@ impute.steps.day <- aggregate(x=list(steps=impute.df$steps),
                        FUN=sum)
 qplot(impute.steps.day$steps, binwidth=1000,
       xlab="total steps per day")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+```r
 impute.mean <- mean(impute.steps.day$steps, na.rm=TRUE)
 impute.mean <- round(impute.mean, digits = 0)
 impute.median <- median(impute.steps.day$steps, na.rm=TRUE)
 ```
 
-* Imputing shifted the **mean** to `r impute.mean` from `r steps.mean`  
-* Imputing shifted the **median** to `r impute.median` from `r steps.median` 
+* Imputing shifted the **mean** to 10766 from 10766  
+* Imputing shifted the **median** to 10762 from 10765 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -133,7 +145,8 @@ This is done by:
 * Assigning the day of the week for each date  
 * Assigining weekday/weekend values for each day    
 
-```{r}
+
+```r
 impute.df$weekdays <- factor(format(impute.df$date, "%A"))
 levels(impute.df$weekdays) <- list(weekday = c("Monday", "Tuesday", "Wednesday", 
                                                 "Thursday", "Friday"),
@@ -142,7 +155,8 @@ levels(impute.df$weekdays) <- list(weekday = c("Monday", "Tuesday", "Wednesday",
   
 The results are then plotted  
 
-```{r}
+
+```r
 interval.weekday <- aggregate(impute.df$steps, by = list(impute.df$weekdays, 
                                                          impute.df$interval), 
                            FUN=mean, na.rm = TRUE, na.action = NULL)
@@ -155,4 +169,6 @@ xyplot(interval.weekday$mean.steps ~ interval.weekday$interval |
        xlab = "Interval", 
        ylab = "Number of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
 
